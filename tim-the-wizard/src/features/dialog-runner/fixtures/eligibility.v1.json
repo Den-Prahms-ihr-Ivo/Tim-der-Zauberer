@@ -1,0 +1,18 @@
+{
+  "id": "eligibility-v1",
+  "title": "Eligibility Wizard",
+  "version": 1,
+  "start": "age",
+  "nodes": {
+    "age": {
+      "type": "question.input",
+      "answerKey": "age",
+      "edges": [
+        { "when": { "<": [ { "var": "answers.age" }, 18 ] }, "to": "underage" },
+        { "to": "summary" }
+      ]
+    },
+    "underage": { "type": "end" },
+    "summary": { "type": "end" }
+  }
+}
