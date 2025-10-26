@@ -1,20 +1,37 @@
-// import { createActor } from "xstate";
-// import { makeDialogMachine } from "../dialogMachine";
-// import def from "../../fixtures/eligibility.v1.json";
+import { createActor } from "xstate";
 
-describe("dialogMachine routing", () => {
-  it("routes female users to the female end node", () => {
-    expect(false).toBeTruthy();
-    /*
-    const actor = createActor(makeDialogMachine(def as any)).start();
+import { makeDialogMachine } from "../dialogMachine";
+import { counterFixtures } from "../../fixtures/counter.fixture";
+import { type Ev } from "../dialog.types";
 
-    // Simulate answering the age question
-    actor.send({ type: "ANSWER", answerKey: "age", value: 16 });
-    actor.send({ type: "NEXT" });
+describe("counterMachine", () => {
+  it("increments correctly", () => {
+    const actor = createActor(makeDialogMachine).start();
 
-    // Expect the machine to move to the "underage" node
-    const state = actor.getSnapshot();
-    expect(state.context.currentId).toBe("underage");
-    */
+    for (const event of counterFixtures.incrementSequence) {
+      actor.send(event as Ev);
+    }
+
+    expect(actor.getSnapshot().context.count).toBe(2);
+  });
+
+  it("handles mixed increment/decrement sequence", () => {
+    const actor = createActor(makeDialogMachine).start();
+
+    for (const event of counterFixtures.mixedSequence) {
+      actor.send(event as Ev);
+    }
+
+    expect(actor.getSnapshot().context.count).toBe(1);
+  });
+
+  it("resets correctly", () => {
+    const actor = createActor(makeDialogMachine).start();
+
+    for (const event of counterFixtures.resetSequence) {
+      actor.send(event as Ev);
+    }
+
+    expect(actor.getSnapshot().context.count).toBe(0);
   });
 });
