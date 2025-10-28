@@ -1,16 +1,7 @@
 // Context, Events, Node, Edge
 
-type State = {
-  on: Record<string, Record<"target", string>>;
-};
-
-export type DialogMachineContext = {
-  id: string;
-  initial: string;
-  states: Record<string, State>;
-};
+export type Answer = "yes" | "no";
 
 export type Ev =
-  | { type: "INCREMENT" }
-  | { type: "DECREMENT" }
-  | { type: "RESET" };
+  | { type: "PROVIDE_Q1"; value: Answer }
+  | { type: "PROVIDE_Q2"; value: Answer };

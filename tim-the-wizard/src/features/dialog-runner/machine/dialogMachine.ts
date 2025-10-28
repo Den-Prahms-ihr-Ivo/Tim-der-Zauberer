@@ -1,34 +1,87 @@
 import { assign, createMachine } from "xstate";
-import { type Ev } from "./dialog.types";
-interface Ctx {
-  count: number;
-}
+import { type Ev, type Answer } from "./dialog.types";
 
 // type AnswerEvent = { type: "ANSWER"; answerKey: string; value: string };
 // type IncrementEvent = { type: "INCREMENT" };
 
-export const makeDialogMachine = createMachine({
+interface Ctx {
+  q1?: Answer;
+  q2?: Answer;
+}
+
+export const dialogMachine = createMachine({
   types: {} as {
     context: Ctx;
     events: Ev;
   },
-  id: "tmp",
-  context: { count: 0 },
-  on: {
-    INCREMENT: {
-      actions: assign({
-        count: ({ context }) => context.count + 1,
-      }),
+  id: "branch2",
+  context: {},
+  initial: "start",
+  states: {
+    start: {
+      on: {
+        PROVIDE_Q1: [
+          {
+            guard: ({ event }) => event.value === "yes",
+            target: "yesPath",
+            actions: assign({
+              q1: ({ event }) => event.value,
+            }),
+          },
+          {
+            target: "noPath",
+            actions: assign({
+              q1: ({ event }) => event.value,
+            }),
+          },
+        ],
+      },
     },
-    DECREMENT: {
-      actions: assign({
-        count: ({ context }) => context.count - 1,
-      }),
+
+    yesPath: {
+      initial: "q2",
+      states: {
+        q2: {
+          on: {
+            PROVIDE_Q2: [
+              {
+                guard: ({ event }) => event.value === "yes",
+                target: "resultYes",
+                actions: assign({ q2: ({ event }) => event.value }),
+              },
+              {
+                target: "resultNo",
+                actions: assign({ q2: ({ event }) => event.value }),
+              },
+            ],
+          },
+        },
+        resultYes: { type: "final" },
+        resultNo: { type: "final" },
+      },
     },
-    RESET: {
-      actions: assign({
-        count: () => 0,
-      }),
+
+    noPath: {
+      initial: "q2",
+      states: {
+        q2: {
+          on: {
+            PROVIDE_Q2: [
+              {
+                guard: ({ event }) => event.value === "yes",
+                target: "resultYes",
+                actions: assign({ q2: ({ event }) => event.value }),
+              },
+              {
+                target: "resultNo",
+                actions: assign({ q2: ({ event }) => event.value }),
+              },
+            ],
+          },
+        },
+        resultYes: { type: "final" },
+        resultNo: { type: "final" },
+      },
     },
   },
 });

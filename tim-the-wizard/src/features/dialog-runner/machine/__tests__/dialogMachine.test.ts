@@ -1,37 +1,33 @@
 import { createActor } from "xstate";
+import { dialogMachine } from "../dialogMachine";
+import { dialogFixture } from "../../fixtures/dialog.v1.fixture";
 
-import { makeDialogMachine } from "../dialogMachine";
-import { counterFixtures } from "../../fixtures/counter.fixture";
-import { type Ev } from "../dialog.types";
-
-describe("counterMachine", () => {
-  it("increments correctly", () => {
-    const actor = createActor(makeDialogMachine).start();
-
-    for (const event of counterFixtures.incrementSequence) {
-      actor.send(event as Ev);
-    }
-
-    expect(actor.getSnapshot().context.count).toBe(2);
+describe("dialogMachine", () => {
+  it("routes yes → yes", () => {
+    const actor = createActor(dialogMachine).start();
+    dialogFixture.seq_yes_yes.forEach((e) => actor.send(e));
+    expect(actor.getSnapshot().matches("yesPath.resultYes")).toBe(true);
+    expect(actor.getSnapshot().context).toEqual({ q1: "yes", q2: "yes" });
   });
 
-  it("handles mixed increment/decrement sequence", () => {
-    const actor = createActor(makeDialogMachine).start();
-
-    for (const event of counterFixtures.mixedSequence) {
-      actor.send(event as Ev);
-    }
-
-    expect(actor.getSnapshot().context.count).toBe(1);
+  it("routes yes → no", () => {
+    const actor = createActor(dialogMachine).start();
+    dialogFixture.seq_yes_no.forEach((e) => actor.send(e));
+    expect(actor.getSnapshot().matches("yesPath.resultNo")).toBe(true);
+    expect(actor.getSnapshot().context).toEqual({ q1: "yes", q2: "no" });
   });
 
-  it("resets correctly", () => {
-    const actor = createActor(makeDialogMachine).start();
+  it("routes no → yes", () => {
+    const actor = createActor(dialogMachine).start();
+    dialogFixture.seq_no_yes.forEach((e) => actor.send(e));
+    expect(actor.getSnapshot().matches("noPath.resultYes")).toBe(true);
+    expect(actor.getSnapshot().context).toEqual({ q1: "no", q2: "yes" });
+  });
 
-    for (const event of counterFixtures.resetSequence) {
-      actor.send(event as Ev);
-    }
-
-    expect(actor.getSnapshot().context.count).toBe(0);
+  it("routes no → no", () => {
+    const actor = createActor(dialogMachine).start();
+    dialogFixture.seq_no_no.forEach((e) => actor.send(e));
+    expect(actor.getSnapshot().matches("noPath.resultNo")).toBe(true);
+    expect(actor.getSnapshot().context).toEqual({ q1: "no", q2: "no" });
   });
 });
